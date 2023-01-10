@@ -4,6 +4,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { AppModule } from '../src/app.module';
 import * as pactum from 'pactum';
 import { AuthDto } from 'src/auth/dto';
+import { EditUserDto } from 'src/user/dto/eidt-user.dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -48,7 +49,6 @@ describe('App e2e', () => {
           .withBody({
             email: authDto.email,
           })
-          .inspect()
           .expectStatus(400);
       });
 
@@ -59,12 +59,11 @@ describe('App e2e', () => {
           .withBody({
             password: authDto.password,
           })
-          .inspect()
           .expectStatus(400);
       });
 
       it('should throw if both empty', () => {
-        return pactum.spec().post('/auth/signup').inspect().expectStatus(400);
+        return pactum.spec().post('/auth/signup').expectStatus(400);
       });
 
       it('should signup', () => {
@@ -72,7 +71,6 @@ describe('App e2e', () => {
           .spec()
           .post('/auth/signup')
           .withBody(authDto)
-          .inspect()
           .expectStatus(201);
       });
     });
@@ -85,7 +83,6 @@ describe('App e2e', () => {
           .withBody({
             email: authDto.email,
           })
-          .inspect()
           .expectStatus(400);
       });
 
@@ -96,12 +93,11 @@ describe('App e2e', () => {
           .withBody({
             password: authDto.password,
           })
-          .inspect()
           .expectStatus(400);
       });
 
       it('should throw if both empty', () => {
-        return pactum.spec().post('/auth/signin').inspect().expectStatus(400);
+        return pactum.spec().post('/auth/signin').expectStatus(400);
       });
 
       it('should signin', () => {
@@ -109,7 +105,6 @@ describe('App e2e', () => {
           .spec()
           .post('/auth/signin')
           .withBody(authDto)
-          .inspect()
           .expectStatus(200)
           .stores('userAt', 'token');
       });
@@ -123,13 +118,26 @@ describe('App e2e', () => {
           .spec()
           .get('/users/me')
           .withHeaders('Authorization', `Bearer $S{userAt}`)
-          .inspect()
           .expectStatus(200);
       });
     });
 
     describe('Edit user', () => {
-      it.todo('should edit user');
+      const editUserDto: EditUserDto = {
+        firstName: 'testFirstName',
+        lastName: 'testLastName',
+      };
+
+      it('should edit user', () => {
+        return pactum
+          .spec()
+          .patch('/users')
+          .withHeaders('Authorization', `Bearer $S{userAt}`)
+          .withBody(editUserDto)
+          .expectBodyContains(editUserDto.lastName)
+          .expectBodyContains(editUserDto.firstName)
+          .expectStatus(200);
+      });
     });
   });
 
